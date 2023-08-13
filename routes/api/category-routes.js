@@ -1,92 +1,83 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
 const { Category, Product } = require("../../models");
 
-// The `/api/categories` endpoint
-
+// GET route to find all categories
 router.get("/", async (req, res) => {
-  // find all categories
-  // be sure to include its associated Products
   try {
-    const categoryData = await Category.findAll({
+    const allCategories = await Category.findAll({
       include: [{ model: Product }],
     });
-    res.status(200).json(categoryData);
+    res.status(200).json(allCategories);
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// GET route to find one category by its `id` value
 router.get("/:id", async (req, res) => {
-  // find one category by its `id` value
-  // be sure to include its associated Products
   try {
-    const categoryData = await Category.findByPk(req.params.id, {
+    const categoryById = await Category.findByPk(req.params.id, {
       include: [{ model: Product }],
     });
-    if (!categoryData) {
-      res.status(404).json({ message: "No category found with that id!" });
+
+    if (!categoryById) {
+      res.status(404).json({ message: "Category not found" });
       return;
     }
-    res.status(200).json(categoryData);
+
+    res.status(200).json(categoryById);
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// POST route to create a new category
 router.post("/", async (req, res) => {
-  // create a new category
   try {
-    const categoryData = await Category.create({
-      category_name: req.body.category_name,
-    });
-    res.status(200).json(categoryData);
+    const newCategory = await Category.create(req.body);
+    res.status(201).json(newCategory);
   } catch (err) {
-    res.status(400).json(err);
+    console.error(err);
+    res.status(400).json({ error: "Bad request" });
   }
 });
 
+// PUT route to update a category by its `id` value
 router.put("/:id", async (req, res) => {
-  // update a category by its `id` value
   try {
-    const categoryData = await Category.update(
-      {
-        category_name: req.body.category_name,
+    const updatedCategory = await Category.update(req.body, {
+      where: {
+        id: req.params.id,
       },
-      {
-        where: {
-          id: req.params.id,
-        },
-      }
-    );
-
-    if (!categoryData[0]) {
-      res.status(404).json({ message: "No category found with that id!" });
-      return;
-    }
-
-    res.status(200).json(categoryData);
+    });
+    res.status(200).json(updatedCategory);
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// DELETE route to delete a category by its `id` value
 router.delete("/:id", async (req, res) => {
-  // delete a category by its `id` value
   try {
-    const categoryData = await Category.destroy({
+    const deletedCategory = await Category.destroy({
       where: {
         id: req.params.id,
       },
     });
 
-    if (!categoryData) {
-      res.status(404).json({ message: "No category found with that id!" });
+    if (!deletedCategory) {
+      res.status(404).json({ message: "Category not found" });
       return;
     }
 
-    res.status(200).json(categoryData);
+    res.status(200).json(deletedCategory);
   } catch (err) {
-    res.status(500).json(err);
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
